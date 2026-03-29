@@ -1,0 +1,9 @@
+node_modules
+user-frontend/node_modules
+user-frontend/node_modules-legacy
+user-frontend/dist
+admin-frontend/node_modules
+admin-frontend/dist
+admin-frontend/.vite-root-old
+*.local
+.DS_Store
