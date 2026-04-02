@@ -1,12 +1,16 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { User } from './user.entity'
+import { PostItem } from './post-item.entity'
 
 export type PostType = 'FREE' | 'PAID'
 
-@Entity()
+@Entity('posts')
 export class Post {
   @PrimaryGeneratedColumn()
   id: number
+
+  @Column({ type: 'int', default: 0 })
+  issue: number
 
   @Column()
   title: string
@@ -25,6 +29,9 @@ export class Post {
 
   @ManyToOne(() => User, (user) => user.posts, { nullable: false })
   publisher: User
+
+  @OneToMany(() => PostItem, (item) => item.post)
+  items: PostItem[]
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date

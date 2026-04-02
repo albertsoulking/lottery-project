@@ -42,7 +42,7 @@ export function RegisterPage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 6 }}>
+    <Container maxWidth="md" sx={{ py: 6 }}>
       <Card>
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom>

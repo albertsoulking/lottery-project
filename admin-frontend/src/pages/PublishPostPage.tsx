@@ -1,140 +1,271 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import Select from '@mui/material/Select'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { apiClient } from '../api/apiClient'
 
+interface UserItem {
+  id: number
+  username: string
+}
+
+interface PredictionItem {
+  id: number
+  lotteryType: string
+  data: Record<string, unknown>
+  status: string
+  user: { username: string }
+  createdAt: string
+}
+
+interface LotteryField {
+  key: string
+  label: string
+  type: 'text' | 'number' | 'select' | 'textarea'
+  required?: boolean
+  options?: string[]
+  helperText?: string
+}
+
+interface LotteryConfig {
+  lotteryType: string
+  label: string
+  fields: LotteryField[]
+}
+
 export function PublishPostPage() {
-  const [title, setTitle] = useState('')
-  const [summary, setSummary] = useState('')
-  const [contentHidden, setContentHidden] = useState('')
-  const [type, setType] = useState<'FREE' | 'PAID'>('PAID')
-  const [price, setPrice] = useState(0)
+  const [configs, setConfigs] = useState<LotteryConfig[]>([])
+  const [predictions, setPredictions] = useState<PredictionItem[]>([])
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [selectedType, setSelectedType] = useState('')
+  const [formData, setFormData] = useState<Record<string, string | number>>({})
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [publisherId, setPublisherId] = useState<number | ''>('')
+  const [submitError, setSubmitError] = useState('')
+  const [submitLoading, setSubmitLoading] = useState(false)
 
-  const adminId = Number(localStorage.getItem('admin_user_id') ?? 0)
-  const isPaid = type === 'PAID'
+  const fetchConfigs = () => apiClient.get('/lottery/configs').then((response) => setConfigs(response.data)).catch(() => setConfigs([]))
+  const fetchUsers = () => apiClient.get('/users').then((response) => setUsers(response.data)).catch(() => setUsers([]))
+  const fetchPredictions = () => apiClient.get('/predictions').then((response) => setPredictions(response.data.items ?? [])).catch(() => setPredictions([]))
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError('')
-    setSuccess('')
+  useEffect(() => {
+    setLoading(true)
+    Promise.all([fetchConfigs(), fetchUsers(), fetchPredictions()])
+      .catch(() => setError('无法加载彩种配置或用户数据'))
+      .finally(() => setLoading(false))
+  }, [])
 
-    if (!adminId) {
-      setError('未获取管理员 ID，请重新登录。')
-      return
+  useEffect(() => {
+    if (configs.length > 0 && !selectedType) {
+      setSelectedType(configs[0].lotteryType)
     }
+  }, [configs, selectedType])
 
-    if (isPaid && price <= 0) {
-      setError('付费帖子必须填写大于 0 的价格。')
-      return
-    }
+  const selectedConfig = useMemo(
+    () => configs.find((config) => config.lotteryType === selectedType),
+    [configs, selectedType],
+  )
 
-    setSaving(true)
-    try {
-      await apiClient.post('/posts', {
-        title,
-        summary,
-        contentHidden: isPaid ? contentHidden : '',
-        type,
-        price: isPaid ? price : 0,
-        publisherId: adminId,
+  useEffect(() => {
+    if (selectedConfig) {
+      const nextData: Record<string, string | number> = {}
+      selectedConfig.fields.forEach((field) => {
+        nextData[field.key] = ''
       })
-      setSuccess('帖子发布成功。')
-      setTitle('')
-      setSummary('')
-      setContentHidden('')
-      setPrice(0)
-    } catch {
-      setError('发布失败，请检查输入并确认登录状态。')
+      setFormData(nextData)
+    }
+  }, [selectedConfig])
+
+  const handleFieldChange = (key: string, value: string | number) => {
+    setFormData((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleCreatePrediction = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmitError('')
+    setSubmitLoading(true)
+
+    if (!publisherId) {
+      setSubmitError('请选择发布用户。')
+      setSubmitLoading(false)
+      return
+    }
+
+    try {
+      await apiClient.post('/predictions', {
+        lotteryType: selectedType,
+        data: formData,
+        publisherId,
+      })
+      setCreateOpen(false)
+      setSubmitError('')
+      fetchPredictions()
+    } catch (error: any) {
+      setSubmitError(error?.response?.data?.message ?? '创建预测失败，请检查输入。')
     } finally {
-      setSaving(false)
+      setSubmitLoading(false)
     }
   }
 
+  if (loading) {
+    return (
+      <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: 3, boxShadow: '0 1px 12px rgba(15,23,42,0.06)' }}>
+        <Typography>加载中...</Typography>
+      </Box>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-slate-900">发帖管理</h2>
-        <p className="mt-2 text-slate-500">发布公开摘要或付费隐藏内容帖子。</p>
-      </div>
+    <Box sx={{ display: 'grid', gap: 4 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box>
+          <Typography variant="h5" fontWeight="bold">
+            预测内容管理
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            根据彩种配置动态生成表单，后台可灵活添加预测项。
+          </Typography>
+        </Box>
+        <Button variant="contained" onClick={() => setCreateOpen(true)} sx={{ textTransform: 'none' }}>
+          新建预测项
+        </Button>
+      </Box>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">标题</label>
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-              placeholder="请输入帖子标题"
-              required
-            />
-          </div>
+      {error ? (
+        <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <CardContent>
+            <Typography color="error">{error}</Typography>
+          </CardContent>
+        </Card>
+      ) : null}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700">摘要</label>
-            <textarea
-              value={summary}
-              onChange={(event) => setSummary(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-              placeholder="请输入帖子公开摘要"
-              rows={4}
-              required
-            />
-          </div>
+      <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+            <FormControl sx={{ minWidth: 220 }}>
+              <InputLabel>彩种</InputLabel>
+              <Select value={selectedType} label="彩种" onChange={(event) => setSelectedType(event.target.value)}>
+                {configs.map((config) => (
+                  <MenuItem key={config.lotteryType} value={config.lotteryType}>
+                    {config.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">帖子类型</label>
-              <select
-                value={type}
-                onChange={(event) => setType(event.target.value as 'FREE' | 'PAID')}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-              >
-                <option value="PAID">付费帖子</option>
-                <option value="FREE">公开帖子</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">价格 (金币)</label>
-              <input
-                type="number"
-                min={0}
-                value={price}
-                disabled={!isPaid}
-                onChange={(event) => setPrice(Number(event.target.value))}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-100"
-                placeholder="付费时填写"
-              />
-            </div>
-          </div>
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700 }}>
+            现有预测项
+          </Typography>
 
-          {isPaid ? (
-            <div>
-              <label className="block text-sm font-medium text-slate-700">隐藏内容</label>
-              <textarea
-                value={contentHidden}
-                onChange={(event) => setContentHidden(event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                placeholder="请输入付费可见内容"
-                rows={6}
-                required
-              />
-            </div>
-          ) : null}
+          <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 'none' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>彩种</TableCell>
+                  <TableCell>发布者</TableCell>
+                  <TableCell>状态</TableCell>
+                  <TableCell>创建时间</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {predictions.map((item) => (
+                  <TableRow key={item.id} hover>
+                    <TableCell>{item.lotteryType}</TableCell>
+                    <TableCell>{item.user?.username ?? '未知'}</TableCell>
+                    <TableCell>{item.status}</TableCell>
+                    <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
 
-          {error ? <div className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
-          {success ? <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div> : null}
+      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ bgcolor: '#f8fafc' }}>新建预测项</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#ffffff' }}>
+          <Box component="form" onSubmit={handleCreatePrediction} sx={{ display: 'grid', gap: 3, mt: 1 }}>
+            <FormControl fullWidth>
+              <InputLabel>发布用户</InputLabel>
+              <Select value={publisherId} label="发布用户" onChange={(event) => setPublisherId(Number(event.target.value))}>
+                {users.map((user) => (
+                  <MenuItem key={user.id} value={user.id}>
+                    {user.username}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? '发布中...' : '发布帖子'}
-          </button>
-        </form>
-      </div>
-    </div>
+            {selectedConfig?.fields.map((field) => {
+              if (field.type === 'select') {
+                return (
+                  <FormControl fullWidth key={field.key}>
+                    <InputLabel>{field.label}</InputLabel>
+                    <Select
+                      label={field.label}
+                      value={formData[field.key] ?? ''}
+                      onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                    >
+                      {field.options?.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {field.helperText ? <Typography variant="caption">{field.helperText}</Typography> : null}
+                  </FormControl>
+                )
+              }
+
+              return (
+                <TextField
+                  key={field.key}
+                  label={field.label}
+                  value={formData[field.key] ?? ''}
+                  onChange={(event) =>
+                    handleFieldChange(field.key, field.type === 'number' ? Number(event.target.value) : event.target.value)
+                  }
+                  fullWidth
+                  multiline={field.type === 'textarea'}
+                  minRows={field.type === 'textarea' ? 4 : 1}
+                  type={field.type === 'number' ? 'number' : 'text'}
+                  helperText={field.helperText}
+                  required={field.required}
+                />
+              )
+            })}
+
+            {submitError ? <Typography color="error">{submitError}</Typography> : null}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button onClick={() => setCreateOpen(false)}>取消</Button>
+              <Button type="submit" variant="contained" disabled={submitLoading}>
+                {submitLoading ? '保存中...' : '保存预测'}
+              </Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
   )
 }

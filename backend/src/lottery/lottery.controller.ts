@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, ParseIntPipe, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { CreateLotteryDto } from './dto/create-lottery.dto'
 import { LotteryService } from './lottery.service'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
@@ -17,6 +17,11 @@ export class LotteryController {
   @Get()
   async findAll(@Query('page') page = '1', @Query('limit') limit = '20') {
     return this.lotteryService.findAll(Number(page), Number(limit))
+  }
+
+  @Get('configs')
+  async getConfigs() {
+    return this.lotteryService.getConfigs()
   }
 
   @Post()

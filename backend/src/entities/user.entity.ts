@@ -1,9 +1,10 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { BalanceLog } from './balance-log.entity'
 import { Post } from './post.entity'
+import { PredictionPost } from './prediction-post.entity'
 import { PurchaseRecord } from './purchase-record.entity'
 
-export type UserRole = 'Admin' | 'User'
+export type UserRole = 'Admin' | 'User' | 'Test'
 
 @Entity()
 export class User {
@@ -22,7 +23,7 @@ export class User {
   @Column({ type: 'int', default: 0 })
   balance: number
 
-  @Column({ type: 'enum', enum: ['Admin', 'User'], default: 'User' })
+  @Column({ type: 'enum', enum: ['Admin', 'User', 'Test'], default: 'Test' })
   role: UserRole
 
   @Column({ default: true })
@@ -33,6 +34,9 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.publisher)
   posts: Post[]
+
+  @OneToMany(() => PredictionPost, (prediction) => prediction.user)
+  predictionPosts: PredictionPost[]
 
   @OneToMany(() => PurchaseRecord, (purchase) => purchase.user)
   purchases: PurchaseRecord[]

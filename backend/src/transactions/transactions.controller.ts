@@ -25,4 +25,20 @@ export class TransactionsController {
   async logs(@Query('page') page = '1', @Query('limit') limit = '50') {
     return this.transactionsService.findAllLogs(Number(page), Number(limit))
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles('Admin')
+  @Get('finance-summary')
+  async financeSummary() {
+    return this.transactionsService.getTodaySummary()
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles('Admin')
+  @Get('finance-trend')
+  async financeTrend() {
+    return this.transactionsService.getWeeklyTrend()
+  }
 }

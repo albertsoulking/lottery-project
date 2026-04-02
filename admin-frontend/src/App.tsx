@@ -6,7 +6,9 @@ import { FinanceDashboard } from './pages/FinanceDashboard'
 import { UsersPage } from './pages/UsersPage'
 import { LotteryLogsPage } from './pages/LotteryLogsPage'
 import { SettingsPage } from './pages/SettingsPage'
-import { PublishPostPage } from './pages/PublishPostPage'
+import { LotteryTypesPage } from './pages/LotteryTypesPage'
+import { PostsPage } from './pages/PostsPage'
+import { CreatePostPage } from './pages/CreatePostPage'
 import { BalanceLogsPage } from './pages/BalanceLogsPage'
 
 function App() {
@@ -18,8 +20,10 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="lottery-types" element={<LotteryTypesPage />} />
+          <Route path="posts" element={<PostsPage />} />
+          <Route path="create-post" element={<CreatePostPage />} />
           <Route path="finance" element={<FinanceDashboard />} />
-          <Route path="posts" element={<PublishPostPage />} />
           <Route path="balance-logs" element={<BalanceLogsPage />} />
           <Route path="lottery-logs" element={<LotteryLogsPage />} />
           <Route path="settings" element={<SettingsPage />} />

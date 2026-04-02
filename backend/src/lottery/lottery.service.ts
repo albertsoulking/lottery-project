@@ -1,11 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { LotteryRecord } from '../entities/lottery-record.entity'
+import { lotteryConfigs, getLotteryConfig } from './lottery-config'
+import { RuleEngineService } from './rule-engine.service'
 
 @Injectable()
 export class LotteryService {
-  constructor(@InjectRepository(LotteryRecord) private readonly lotteryRepository: Repository<LotteryRecord>) {}
+  constructor(
+    @InjectRepository(LotteryRecord) private readonly lotteryRepository: Repository<LotteryRecord>,
+    private readonly ruleEngineService: RuleEngineService,
+  ) {}
+
+  getConfigs() {
+    return lotteryConfigs.map(({ lotteryType, label, fields }) => ({ lotteryType, label, fields }))
+  }
+
+  validatePrediction(lotteryType: string, data: Record<string, unknown>) {
+    const config = getLotteryConfig(lotteryType)
+    if (!config) {
+      throw new BadRequestException('未知彩种类型')
+    }
+    return this.ruleEngineService.validate(lotteryType, data)
+  }
 
   async findAll(page = 1, limit = 20) {
     const [items, total] = await this.lotteryRepository.findAndCount({

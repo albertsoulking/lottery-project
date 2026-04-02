@@ -32,4 +32,20 @@ export class PostsController {
   async create(@Body() createPostDto: CreatePostDto) {
     return this.postsService.create(createPostDto)
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles('Admin')
+  @Post('clone-last')
+  async cloneLast() {
+    return this.postsService.cloneLast()
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles('Admin')
+  @Post('generate-demo')
+  async generateDemoPost() {
+    return this.postsService.generateDemoPost()
+  }
 }

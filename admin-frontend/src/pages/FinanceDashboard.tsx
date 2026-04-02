@@ -1,3 +1,7 @@
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Typography from '@mui/material/Typography'
 import { useEffect, useState } from 'react'
 import { apiClient } from '../api/apiClient'
 
@@ -21,32 +25,48 @@ export function FinanceDashboard() {
   }, [])
 
   if (loading) {
-    return <p>正在加载对账数据...</p>
+    return <Typography>正在加载对账数据...</Typography>
   }
 
   if (error) {
-    return <p className="text-red-600">{error}</p>
+    return <Typography color="error">{error}</Typography>
   }
 
   if (!summary) {
-    return <p>暂无对账数据</p>
+    return <Typography>暂无对账数据</Typography>
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
-          <p className="text-sm text-slate-500">Total Recharge</p>
-          <p className="mt-4 text-4xl font-semibold text-slate-900">{summary.totalRecharge} 金币</p>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
-          <p className="text-sm text-slate-500">Total Consumption</p>
-          <p className="mt-4 text-4xl font-semibold text-slate-900">{summary.totalConsumption} 金币</p>
-        </div>
-      </div>
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-slate-600">本页面展示系统内所有充值和购买流水的汇总信息。</p>
-      </div>
-    </div>
+    <Box sx={{ display: 'grid', gap: 4 }}>
+      <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' } }}>
+        <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <CardContent>
+            <Typography variant="subtitle2" color="text.secondary">
+              累计充值
+            </Typography>
+            <Typography variant="h4" fontWeight="bold" sx={{ mt: 2 }}>
+              {summary.totalRecharge} 金币
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <CardContent>
+            <Typography variant="subtitle2" color="text.secondary">
+              累计消费
+            </Typography>
+            <Typography variant="h4" fontWeight="bold" sx={{ mt: 2 }}>
+              {summary.totalConsumption} 金币
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+      <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+        <CardContent>
+          <Typography variant="body2" color="text.secondary">
+            本页面展示系统内所有充值和购买流水的汇总信息。
+          </Typography>
+        </CardContent>
+      </Card>
+    </Box>
   )
 }

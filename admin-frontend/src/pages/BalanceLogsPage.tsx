@@ -1,4 +1,15 @@
 import { useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Typography from '@mui/material/Typography'
 import { apiClient } from '../api/apiClient'
 
 interface BalanceLogItem {
@@ -34,48 +45,60 @@ export function BalanceLogsPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-slate-900">财务日志</h2>
-        <p className="mt-2 text-slate-500">展示用户余额变动记录与调账明细。</p>
-      </div>
+    <Box sx={{ display: 'grid', gap: 4 }}>
+      <Box>
+        <Typography variant="h5" fontWeight="bold">
+          财务日志
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          展示用户余额变动记录与调账明细。
+        </Typography>
+      </Box>
 
       {loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500 shadow-sm">加载财务日志中...</div>
+        <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <CardContent>
+            <Typography>加载财务日志中...</Typography>
+          </CardContent>
+        </Card>
       ) : error ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-700 shadow-sm">{error}</div>
+        <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <CardContent>
+            <Typography color="error">{error}</Typography>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-100 text-slate-600">
-              <tr>
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">用户</th>
-                <th className="px-6 py-4">金额</th>
-                <th className="px-6 py-4">类型</th>
-                <th className="px-6 py-4">余额</th>
-                <th className="px-6 py-4">备注</th>
-                <th className="px-6 py-4">时间</th>
-              </tr>
-            </thead>
-            <tbody>
+        <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>记录 ID</TableCell>
+                <TableCell>用户</TableCell>
+                <TableCell>金额</TableCell>
+                <TableCell>类型</TableCell>
+                <TableCell>余额</TableCell>
+                <TableCell>备注</TableCell>
+                <TableCell>时间</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {logs.map((item) => (
-                <tr key={item.id} className="border-t border-slate-200">
-                  <td className="px-6 py-4 text-slate-700">{item.id}</td>
-                  <td className="px-6 py-4 font-medium text-slate-900">{item.user?.username ?? '未知'}</td>
-                  <td className={`px-6 py-4 font-semibold ${item.amount >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                <TableRow key={item.id} hover>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.user?.username ?? '未知'}</TableCell>
+                  <TableCell sx={{ color: item.amount >= 0 ? 'success.main' : 'error.main', fontWeight: 600 }}>
                     {item.amount >= 0 ? `+${item.amount}` : item.amount}
-                  </td>
-                  <td className="px-6 py-4 text-slate-700">{item.type}</td>
-                  <td className="px-6 py-4 text-slate-700">{item.balanceAfter}</td>
-                  <td className="px-6 py-4 text-slate-700">{item.remark ?? '—'}</td>
-                  <td className="px-6 py-4 text-slate-700">{new Date(item.createdAt).toLocaleString()}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell>{item.type}</TableCell>
+                  <TableCell>{item.balanceAfter}</TableCell>
+                  <TableCell>{item.remark ?? '—'}</TableCell>
+                  <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   )
 }

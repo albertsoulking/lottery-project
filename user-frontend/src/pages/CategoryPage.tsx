@@ -28,7 +28,7 @@ export function CategoryPage() {
   const rows = useMemo(() => HOME_FORUM_ROWS.filter((row) => row.kind === kind), [kind]);
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+    <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <Card sx={{ p: 3, mb: 3 }}>
         <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} gap={2}>
           <Typography variant="h5">{kind ?? '分类'}</Typography>

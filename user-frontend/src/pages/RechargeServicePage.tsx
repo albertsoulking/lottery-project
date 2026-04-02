@@ -1,11 +1,11 @@
-import type { SyntheticEvent } from "react";
-import { rechargeTiers } from "../data/topics";
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 
 export interface RechargeServicePageProps {
   title: string;
@@ -14,96 +14,118 @@ export interface RechargeServicePageProps {
 const WECHAT_ID = "nn187384";
 const QR_IMAGE = "/fta1/83.jpg";
 
-function handleQrError(e: SyntheticEvent<HTMLImageElement>) {
-  const img = e.currentTarget;
-  img.style.display = "none";
-  const wrap = img.closest(".rs-qr-wrap");
-  if (!wrap) return;
-  wrap.querySelector<HTMLElement>(".rs-qr-caption")?.style.setProperty("display", "none");
-  wrap.querySelector(".rs-qr-fallback")?.classList.add("rs-qr-fallback--show");
-}
-
 export function RechargeServicePage({ title }: RechargeServicePageProps) {
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
-      <Card sx={{ mb: 3, p: 3 }}>
-        <Typography variant="h5" gutterBottom>
+    <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
+      <Paper sx={{ position: 'relative', p: { xs: 2, md: 3 }, bgcolor: '#fff', boxShadow: 1 }}>
+        <Box sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
           {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          充值金币联系微信：{WECHAT_ID}
-        </Typography>
-        <Typography variant="body1" fontWeight="bold" paragraph>
-          最低充值500元起，充多送多。
-        </Typography>
-      </Card>
+        </Box>
+        <Box sx={{ borderBottom: '1px dashed #ccc', py: 1, textAlign: 'center' }}>
+          <Typography variant="h5" component="h3" fontWeight="bold">
+            【金币充值流程及注册说明】
+          </Typography>
+        </Box>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 3,
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-        }}
-      >
-        <Box>
-          <Card sx={{ p: 3 }}>
-            <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
-                微信二维码
-              </Typography>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box
-                  component="img"
-                  src={QR_IMAGE}
-                  alt="微信二维码，点击图片可放大"
-                  sx={{ width: '100%', maxWidth: 360, borderRadius: 2 }}
-                  onError={handleQrError}
-                />
-                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                  试料，问料，扯皮的请勿加，谢谢
-                </Typography>
-                <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-                  请将二维码图片放在 public/fta1/83.jpg
-                </Typography>
+        <Box sx={{ mt: 4 }}>
+          <Box sx={{ textAlign: 'center', bgcolor: '#e7e7e7', py: 2, borderRadius: 1 }}>
+            <Typography variant="h6" fontWeight="bold" color="error.main">
+              充值金币联系微信：{WECHAT_ID}
+            </Typography>
+          </Box>
+
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Box sx={{ position: 'relative', display: 'inline-block' }}>
+              <Box
+                component="img"
+                src={QR_IMAGE}
+                alt="微信二维码"
+                sx={{ width: 362, height: 498, display: 'block' }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 20,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  color: '#FFFF00',
+                  bgcolor: 'rgba(255,0,0,0.85)',
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 2,
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  border: '2px solid #FFFFFF',
+                  textShadow: '2px 2px 6px rgba(0,0,0,0.9)',
+                  width: '86%',
+                  boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                试料，问料，扯皮的请勿加，谢谢
               </Box>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box>
-          <Card sx={{ p: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              充值套餐
-            </Typography>
-            <Box
-              sx={{
-                display: 'grid',
-                gap: 2,
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-              }}
-            >
-              {rechargeTiers.map((tier) => (
-                <Box key={tier.amount}>
-                  <Paper sx={{ p: 2, height: '100%' }}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      单次充值
-                    </Typography>
-                    <Typography variant="h6" fontWeight="bold">
-                      {tier.amount}元
-                    </Typography>
-                    <Typography>{tier.points}金币</Typography>
-                  </Paper>
-                </Box>
-              ))}
             </Box>
-          </Card>
-          <Card sx={{ mt: 3, p: 3, bgcolor: 'grey.100' }}>
-            <Typography variant="body2" color="text.secondary">
-              货币汇率：1人民币 = 1金币。所有高手出售资料均需单期购买才能读取完整内容，金币充值后不允许退换，请谨慎考虑。
+          </Box>
+
+          <Box sx={{ mt: 3, textAlign: 'left' }}>
+            <Typography variant="body1" component="div" sx={{ fontSize: 18 }}>
+              <Typography component="span" sx={{ color: '#ff0000', bgcolor: '#ffffff', fontWeight: 'bold' }}>
+                声明：
+              </Typography>
+              <Typography component="span" sx={{ color: '#666666', bgcolor: '#ffffff' }}>
+                上方微信二维码是论坛管理员。管理员不发表资料也不提供任何资料，论坛所有资料都是高手发表与版主无关。问码的请不要加！版主只提供充值服务，和监督高手!
+              </Typography>
             </Typography>
-          </Card>
+          </Box>
+
+          <Box sx={{ mt: 4 }}>
+            <Table sx={{ borderCollapse: 'collapse', width: '100%', '& td': { border: 'none', p: 2 } }}>
+              <TableBody>
+                <TableRow sx={{ bgcolor: '#F8F5EF' }}>
+                  <TableCell align="center" sx={{ width: '33%', fontWeight: 'bold', color: '#ff0000' }}>
+                    单次充值<br />500元=<br />588金币
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: '33%', fontWeight: 'bold', color: '#ff0000' }}>
+                    单次充值<br />1000元=<br />1288金币
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: '34%', fontWeight: 'bold', color: '#ff0000' }}>
+                    单次充值<br />2000元=<br />2588金币
+                  </TableCell>
+                </TableRow>
+                <TableRow sx={{ bgcolor: '#F8F5EF' }}>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#ff0000' }}>
+                    单次充值<br />3000元=<br />4088金币
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#ff0000' }}>
+                    单次充值<br />5000元=<br />7188金币
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#ff0000' }}>
+                    单次充值<br />10000元=<br />16888金币
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#ff0000', bgcolor: '#ffff00', px: 1 }}>
+                （货币汇率：1人民币=1金币）
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Typography variant="body1" fontWeight="bold" color="error.main" sx={{ fontSize: 18 }}>
+              （注意1：所有高手出售的资料都是单期购买才能查看）
+            </Typography>
+            <Typography variant="body1" fontWeight="bold" color="error.main" sx={{ fontSize: 18, mt: 2 }}>
+              （注意2：金币充值后不允许退换,请谨慎考虑后再充值）
+            </Typography>
+          </Box>
         </Box>
-      </Box>
+      </Paper>
     </Container>
   );
 }

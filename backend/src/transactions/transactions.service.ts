@@ -174,4 +174,59 @@ export class TransactionsService {
 
     return { totalRecharge, totalConsumption }
   }
+
+  async getTodaySummary() {
+    const rechargeResult = await this.logRepository
+      .createQueryBuilder('log')
+      .select('COALESCE(SUM(log.amount), 0)', 'sum')
+      .where('log.type = :type', { type: 'RECHARGE' })
+      .andWhere("DATE(log.createdAt) = CURDATE()")
+      .getRawOne<{ sum: string }>()
+
+    const withdrawalResult = await this.logRepository
+      .createQueryBuilder('log')
+      .select('COALESCE(SUM(ABS(log.amount)), 0)', 'sum')
+      .where('log.type = :type', { type: 'PURCHASE' })
+      .andWhere("DATE(log.createdAt) = CURDATE()")
+      .getRawOne<{ sum: string }>()
+
+    const purchaseResult = await this.purchaseRepository
+      .createQueryBuilder('purchase')
+      .select('COUNT(*)', 'count')
+      .addSelect('COALESCE(SUM(purchase.amount), 0)', 'sum')
+      .where("DATE(purchase.purchasedAt) = CURDATE()")
+      .getRawOne<{ count: string; sum: string }>()
+
+    return {
+      todayRecharge: Number(rechargeResult?.sum ?? 0),
+      todayWithdrawal: Number(withdrawalResult?.sum ?? 0),
+      purchaseCount: Number(purchaseResult?.count ?? 0),
+      purchaseAmount: Number(purchaseResult?.sum ?? 0),
+    }
+  }
+
+  async getWeeklyTrend() {
+    const rows = await this.logRepository
+      .createQueryBuilder('log')
+      .select("DATE_FORMAT(log.createdAt, '%m-%d')", 'date')
+      .addSelect("SUM(CASE WHEN log.type = 'RECHARGE' THEN log.amount ELSE 0 END)", 'recharge')
+      .addSelect("SUM(CASE WHEN log.type = 'PURCHASE' THEN ABS(log.amount) ELSE 0 END)", 'withdrawal')
+      .where('log.createdAt >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)')
+      .groupBy("DATE(log.createdAt)")
+      .orderBy('DATE(log.createdAt)', 'ASC')
+      .getRawMany<{ date: string; recharge: string; withdrawal: string }>()
+
+    const trendMap = new Map(rows.map((row) => [row.date, { recharge: Number(row.recharge), withdrawal: Number(row.withdrawal) }]))
+    const trend: Array<{ date: string; recharge: number; withdrawal: number }> = []
+
+    for (let i = 6; i >= 0; i -= 1) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const label = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+      const value = trendMap.get(label) ?? { recharge: 0, withdrawal: 0 }
+      trend.push({ date: label, ...value })
+    }
+
+    return trend
+  }
 }

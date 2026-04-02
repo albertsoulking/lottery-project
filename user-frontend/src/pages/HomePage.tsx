@@ -17,11 +17,11 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import assets from "../assets";
+import { KeyboardDoubleArrowLeftRounded, KeyboardDoubleArrowRightRounded } from "@mui/icons-material";
 
+const QQ_ID = "5944876";
 const WECHAT_ID = "nn187384";
-const QR_SRC = "/fta1/83.jpg";
-const LOGO_GIF = "/fta1/logo.gif";
 const LIVE_IFRAME_SRC = "https://zhibo.2020kj.com:777/2020kj.html";
 
 function copyWechatId(wechatId: string) {
@@ -74,34 +74,90 @@ export function HomePage() {
   }, []);
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
-      <Paper sx={{ mb: 4, overflow: 'hidden' }}>
-        {bannerFallback ? (
-          <Box sx={{ height: 220, bgcolor: 'grey.300' }} aria-label="站点横幅" />
-        ) : (
-          <Box component="picture">
-            <source type="image/webp" media="(min-width: 466px)" srcSet="/images/kb.webp" />
-            <source type="image/webp" media="(max-width: 465px)" srcSet="/images/m-kb.webp" />
-            <Box
-              component="img"
-              src="/images/kb.webp"
-              alt=""
-              width="100%"
-              sx={{ display: 'block' }}
-              onError={() => setBannerFallback(true)}
-            />
-          </Box>
-        )}
-      </Paper>
-
+    <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <Box
         sx={{
           display: 'grid',
-          gap: 3,
-          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
+          gap: 2,
+          gridTemplateColumns: '1fr',
           alignItems: 'start',
         }}
       >
+        <Box>
+          <Card sx={{ mb: 3 }} elevation={0}>
+            <Box component="img" src={assets.LOGO_GIF} alt="" sx={{ width: '100%', borderRadius: 2 }} onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
+          </Card>
+
+          <Card sx={{ mb: 3 }}>
+            <Box sx={{ position: 'relative', pb: '30%' }}>
+              <Box
+                component="iframe"
+                title="开奖直播"
+                src={LIVE_IFRAME_SRC}
+                sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0, borderRadius: 2 }}
+                sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              />
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 2, mb: 3 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 2,
+                gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(3, minmax(0, 1fr))' },
+              }}
+            >
+              {rechargeTiers.slice(0, 6).map((tier) => (
+                <Paper key={tier.amount} sx={{ p: 2, textAlign: 'center' }} elevation={0}>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    单次充值
+                  </Typography>
+                  <Typography variant="h6" component="div">
+                    {tier.amount}元
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {tier.points}金币
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mb: 3, bgcolor: 'bisque', textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ display: 'inline', mb: 2 }} fontWeight={'bold'} color="primary">
+              温馨提示：
+            </Typography>
+            <Typography variant="h4" color="text.primary" sx={{ display: "inline" }} fontWeight={'bold'}>
+              如发消息给管理员长时间不回复，
+            </Typography>
+            <Typography variant="h4" color="text.primary" fontWeight={'bold'}>
+              请添加最新 <span style={{ color: 'primary' }}>客服QQ：{QQ_ID}，客服微信：{WECHAT_ID}。</span>
+            </Typography>
+          </Card>
+
+          <Card sx={{ p: 3, mb: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', bgcolor: 'grey.100' }}>
+            <Typography variant="h4">点击此处复制客服微信号</Typography>
+            <Box>
+              <KeyboardDoubleArrowRightRounded fontSize="large" sx={{ verticalAlign: 'middle' }} />
+              <KeyboardDoubleArrowRightRounded fontSize="large" sx={{ verticalAlign: 'middle' }} />
+              <Button variant="contained" color="success" size="large" sx={{ textTransform: 'none', fontSize: 20 }} onClick={onCopyWechat}>
+                微信号：{WECHAT_ID}
+              </Button>
+              <KeyboardDoubleArrowLeftRounded fontSize="large" sx={{ verticalAlign: 'middle' }} />
+              <KeyboardDoubleArrowLeftRounded fontSize="large" sx={{ verticalAlign: 'middle' }} />
+            </Box>
+
+          </Card>
+
+          <Card sx={{ p: 2, mb: 3, textAlign: 'center' }}>
+            <Box component="img" src={assets.QR_WECHAT} alt="微信二维码" sx={{ width: '50%', borderRadius: 2 }} onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
+            <Typography variant="h6" display="block" sx={{ m: '0 auto', width: 'fit-content', p: 1, color: '#FFFF00', bgcolor: 'rgba(255, 0, 0, 0.85)', boxShadow: '0 6px 12px rgba(0,0,0,0.4)', textShadow: '2px 2px 6px rgba(0,0,0,0.9)', border: '2px solid #FFFFFF', borderRadius: 2 }}>
+              试料，问料，扯皮的请勿加，谢谢
+            </Typography>
+          </Card>
+        </Box>
+
         <Box>
           <Card sx={{ p: 3, mb: 3 }}>
             <Stack spacing={2}>
@@ -125,78 +181,31 @@ export function HomePage() {
             </Stack>
           </Card>
 
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              充值优惠
-            </Typography>
-            <Box
-              sx={{
-                display: 'grid',
-                gap: 2,
-                gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(3, minmax(0, 1fr))' },
-              }}
-            >
-              {rechargeTiers.slice(0, 6).map((tier) => (
-                <Paper key={tier.amount} sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    单次充值
-                  </Typography>
-                  <Typography variant="h6" component="div">
-                    {tier.amount}元
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {tier.points}金币
-                  </Typography>
-                </Paper>
-              ))}
-            </Box>
-          </Card>
-
-          <Card sx={{ p: 3, mb: 3, bgcolor: 'warning.lighter' }}>
-            <Typography variant="subtitle1" gutterBottom>
-              温馨提示
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              如发消息给管理员长时间不回复，请添加最新客服QQ：5944876，客服微信：nn187384。
-            </Typography>
-          </Card>
-
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Stack spacing={2}>
-              <Typography variant="h6">微信客服</Typography>
-              <Box>
-                <Button variant="contained" startIcon={<ShoppingCartIcon />} onClick={onCopyWechat}>
-                  复制微信号：{WECHAT_ID}
-                </Button>
-              </Box>
-            </Stack>
-          </Card>
-
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Card sx={{ p: 3, mb: 1 }}>
+            <Typography variant="h4" gutterBottom>
               本期推荐
             </Typography>
             <TableContainer component={Paper} elevation={0}>
-              <Table size="small">
+              <Table size='medium'>
                 <TableHead>
                   <TableRow>
-                    <TableCell>类型</TableCell>
-                    <TableCell>帖子标题</TableCell>
-                    <TableCell>作者</TableCell>
+                    <TableCell sx={{ fontSize: 16 }}>类型</TableCell>
+                    <TableCell sx={{ fontSize: 16 }}>帖子标题</TableCell>
+                    <TableCell sx={{ fontSize: 16 }}>作者</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {HOME_FORUM_ROWS.map((row) => (
                     <TableRow key={`${row.kind}-${row.id}`} hover>
                       <TableCell>
-                        <Chip label={row.kind} color={badgeColor(row.kind)} size="small" />
+                        <Chip label={row.kind} color={badgeColor(row.kind)} size="medium" sx={{ fontSize: 18 }} />
                       </TableCell>
                       <TableCell>
-                        <Link component={RouterLink} to={`/post/${row.id}`} underline="hover">
+                        <Link component={RouterLink} to={`/post/${row.id}`} underline="hover" sx={{ fontSize: 20, fontWeight: 'bold' }}>
                           {row.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{row.author}</TableCell>
+                      <TableCell sx={{ fontSize: 18, fontWeight: 'bold', color: 'grey' }}>{row.author}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -204,35 +213,25 @@ export function HomePage() {
             </TableContainer>
           </Card>
         </Box>
+      </Box>
 
-        <Box>
-          <Card sx={{ p: 2, mb: 3 }}>
-            <Box component="img" src={LOGO_GIF} alt="" sx={{ width: '100%', borderRadius: 2 }} onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
-          </Card>
+      <Box component="img" src={assets.FOOTER} alt="" sx={{ width: '100%', borderRadius: 2 }} onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
 
-          <Card sx={{ p: 2, mb: 3 }}>
-            <Box sx={{ position: 'relative', pb: '100%' }}>
-              <Box
-                component="iframe"
-                title="开奖直播"
-                src={LIVE_IFRAME_SRC}
-                sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0, borderRadius: 2 }}
-                sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              />
-            </Box>
-          </Card>
+      <Box sx={{ bgcolor: 'green', p: 1, mb: 1 }}>
+        <Typography variant="h5" fontWeight="bold" align="center" sx={{ mt: 3, color: '#ffff99' }}>
+          新澳彩论坛-【专注澳门特码研究】-提供澳门特码资料、澳门特码论坛、澳门特码开奖结果等服务，欢迎访问！
+        </Typography>
+      </Box>
 
-          <Card sx={{ p: 2, mb: 3, textAlign: 'center' }}>
-            <Box component="img" src={QR_SRC} alt="微信二维码" sx={{ width: '100%', borderRadius: 2 }} onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
-            <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-              试料，问料，扯皮的请勿加，谢谢
-            </Typography>
-          </Card>
+      <Box component="img" src={assets.SIGN} alt="" sx={{ width: '100%', borderRadius: 2 }} onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
 
-          <Card sx={{ p: 2, bgcolor: 'grey.100' }}>
-            <Typography variant="body2">请将二维码图片放在 public/fta1/83.jpg</Typography>
-          </Card>
-        </Box>
+      <Box textAlign={'center'}>
+        <Typography variant="h6" color="text.secondary" sx={{ mt: 3, mb: 2 }}>
+          免责提示：未满十八岁人士、无民事行为能力人，请勿浏览本站内容，本站拒绝提供任何服务。
+        </Typography>
+        <Typography variant="h6">
+          版权所有 不得转载 © 至尊联盟 858243.COM
+        </Typography>
       </Box>
     </Container>
   );

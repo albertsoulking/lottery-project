@@ -1,4 +1,24 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import SearchIcon from '@mui/icons-material/Search'
 import { apiClient } from '../api/apiClient'
 
 interface UserItem {
@@ -22,6 +42,12 @@ export function UsersPage() {
   const [modalError, setModalError] = useState('')
   const [modalSuccess, setModalSuccess] = useState('')
   const [modalSaving, setModalSaving] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [newUsername, setNewUsername] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const defaultNewUserRole = 'Test'
+  const [createError, setCreateError] = useState('')
+  const [createLoading, setCreateLoading] = useState(false)
 
   const fetchUsers = () => {
     setLoading(true)
@@ -42,7 +68,7 @@ export function UsersPage() {
   }, [])
 
   const filteredUsers = useMemo(
-    () => users.filter((user) => user.username.includes(query) || (user.phone ?? '').includes(query)),
+    () => users.filter((user) => user.username.toLowerCase().includes(query.toLowerCase()) || (user.phone ?? '').includes(query)),
     [query, users],
   )
 
@@ -83,136 +109,202 @@ export function UsersPage() {
     }
   }
 
+  const handleCreateUser = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setCreateError('')
+    setCreateLoading(true)
+
+    try {
+      await apiClient.post('/users', {
+        username: newUsername,
+        password: newPassword,
+        role: defaultNewUserRole,
+      })
+      setNewUsername('')
+      setNewPassword('')
+      setAddOpen(false)
+      fetchUsers()
+    } catch {
+      setCreateError('创建用户失败，请检查输入或权限。')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-slate-900">用户管理</h2>
-          <p className="mt-2 text-slate-500">搜索、查看和手动调账用户余额。</p>
-        </div>
-        <label className="w-full max-w-sm">
-          <span className="sr-only">搜索用户</span>
-          <input
+    <Box sx={{ display: 'grid', gap: 4, bgcolor: '#ffffff', borderRadius: 3, p: { xs: 2, md: 3 }, boxShadow: '0 1px 12px rgba(15,23,42,0.06)' }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', gap: 3 }}>
+        <Box>
+          <Typography variant="overline" sx={{ color: '#111827', fontWeight: 700, letterSpacing: 1.2 }}>
+            用户管理
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'rgba(55,65,81,0.78)', mt: 1 }}>
+            使用简洁的表格搜索并管理用户余额。
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', maxWidth: 520 }}>
+          <TextField
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="按用户名或手机号搜索"
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            fullWidth
+            placeholder="搜索用户名或手机号"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'rgba(15,23,42,0.5)' }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                bgcolor: '#ffffff',
+                border: '1px solid rgba(0,0,0,0.14)',
+              },
+            }}
           />
-        </label>
-      </div>
+          <Button variant="contained" onClick={() => setAddOpen(true)} sx={{ textTransform: 'none' }}>
+            添加用户
+          </Button>
+        </Box>
+      </Box>
 
       {loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500 shadow-sm">加载用户数据中...</div>
+        <Box sx={{ p: 4, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 3, bgcolor: '#ffffff' }}>
+          <Typography sx={{ color: 'rgba(55,65,81,0.75)' }}>正在加载用户...</Typography>
+        </Box>
       ) : error ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-700 shadow-sm">{error}</div>
+        <Box sx={{ p: 4, border: '1px solid rgba(255,0,0,0.12)', borderRadius: 3, bgcolor: '#fff7f7' }}>
+          <Typography sx={{ color: '#b91c1c' }}>{error}</Typography>
+        </Box>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-100 text-slate-600">
-              <tr>
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">用户名</th>
-                <th className="px-6 py-4">手机号</th>
-                <th className="px-6 py-4">余额</th>
-                <th className="px-6 py-4">角色</th>
-                <th className="px-6 py-4">状态</th>
-                <th className="px-6 py-4">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="border-t border-slate-200">
-                  <td className="px-6 py-4 text-slate-700">{user.id}</td>
-                  <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
-                  <td className="px-6 py-4 text-slate-700">{user.phone ?? '—'}</td>
-                  <td className="px-6 py-4 text-slate-900">{user.balance}</td>
-                  <td className="px-6 py-4 text-slate-700">{user.role}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                        user.active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                      }`}
-                    >
-                      {user.active ? '正常' : '冻结'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      type="button"
-                      onClick={() => openAdjustModal(user)}
-                      className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-                    >
-                      手动调账
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 'none', border: '1px solid rgba(0,0,0,0.08)' }}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  {['ID', '用户名', '手机号', '余额', '角色', '状态', '操作'].map((label) => (
+                    <TableCell key={label} sx={{ color: '#111827', fontWeight: 700, borderBottom: 'none', py: 2 }}>
+                      {label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id} sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+                    <TableCell sx={{ color: 'rgba(15,23,42,0.78)', py: 2 }}>{user.id}</TableCell>
+                    <TableCell sx={{ color: 'rgba(15,23,42,0.88)', py: 2 }}>{user.username}</TableCell>
+                    <TableCell sx={{ color: 'rgba(15,23,42,0.78)', py: 2 }}>{user.phone ?? '—'}</TableCell>
+                    <TableCell sx={{ color: user.balance >= 0 ? '#0f4fbc' : 'rgba(15,23,42,0.78)', py: 2 }}>{user.balance.toFixed(2)}</TableCell>
+                    <TableCell sx={{ color: 'rgba(15,23,42,0.78)', py: 2 }}>{user.role}</TableCell>
+                    <TableCell sx={{ py: 2 }}>
+                      <Box sx={{ display: 'inline-flex', alignItems: 'center', px: 1.8, py: 0.7, borderRadius: 999, bgcolor: user.active ? '#dcfce7' : '#FEE2E2', color: user.active ? '#166534' : '#991B1B', fontWeight: 600, fontSize: 12 }}>
+                        {user.active ? '正常' : '冻结'}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ py: 2 }}>
+                      <Button
+                        variant="contained"
+                        disableElevation
+                        sx={{
+                          backgroundColor: '#DBEAFE',
+                          color: '#1E3A8A',
+                          textTransform: 'none',
+                          boxShadow: 'none',
+                          '&:hover': { backgroundColor: '#BFDBFE' },
+                        }}
+                        onClick={() => openAdjustModal(user)}
+                      >
+                        手动调账
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+            <Typography variant="body2" sx={{ color: 'rgba(15,23,42,0.7)' }}>
+              共 {users.length} 条
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <IconButton size="small" sx={{ border: '1px solid rgba(0,0,0,0.08)', color: '#111827' }}>
+                <ChevronLeftIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" sx={{ border: '1px solid rgba(0,0,0,0.08)', color: '#111827' }}>
+                <ChevronRightIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        </>
       )}
 
-      {selectedUser ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 py-8">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-slate-900">手动调账</h3>
-                <p className="mt-1 text-sm text-slate-500">对用户 {selectedUser.username} 进行余额调节。</p>
-              </div>
-              <button type="button" onClick={closeModal} className="text-slate-500 hover:text-slate-900">
-                关闭
-              </button>
-            </div>
-            <form className="mt-6 space-y-4" onSubmit={handleAdjust}>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">目标用户</label>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700">
-                  {selectedUser.username} (ID: {selectedUser.id})
-                </div>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">调整金额</label>
-                <input
-                  type="number"
-                  value={adjustAmount}
-                  onChange={(event) => setAdjustAmount(Number(event.target.value))}
-                  placeholder="输入正数为充值，负数为扣减"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">备注</label>
-                <input
-                  type="text"
-                  value={remark}
-                  onChange={(event) => setRemark(event.target.value)}
-                  placeholder="例如：后台充值、手动扣费"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                />
-              </div>
-              {modalError ? <div className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{modalError}</div> : null}
-              {modalSuccess ? <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{modalSuccess}</div> : null}
-              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  disabled={modalSaving}
-                  className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {modalSaving ? '保存中...' : '提交调账'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-    </div>
+      <Dialog open={Boolean(selectedUser)} onClose={closeModal} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ bgcolor: '#f8fafc' }}>手动调账</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#ffffff' }}>
+          <Box sx={{ display: 'grid', gap: 3, mt: 1 }} component="form" onSubmit={handleAdjust}>
+            <Typography variant="body2" sx={{ color: 'rgba(55,65,81,0.78)' }}>
+              调整用户 {selectedUser?.username} 的余额。
+            </Typography>
+            <TextField label="目标用户" value={selectedUser?.username ?? ''} fullWidth disabled />
+            <TextField
+              label="调整金额"
+              type="number"
+              value={adjustAmount}
+              onChange={(event) => setAdjustAmount(Number(event.target.value))}
+              helperText="正数为充值，负数为扣减"
+              fullWidth
+            />
+            <TextField label="备注" value={remark} onChange={(event) => setRemark(event.target.value)} fullWidth />
+            {modalError ? <Typography color="error">{modalError}</Typography> : null}
+            {modalSuccess ? <Typography color="success.main">{modalSuccess}</Typography> : null}
+            <DialogActions sx={{ px: 0, pb: 0, pt: 2 }}>
+              <Button onClick={closeModal}>取消</Button>
+              <Button type="submit" variant="contained" disabled={modalSaving}>
+                {modalSaving ? '保存中...' : '提交调账'}
+              </Button>
+            </DialogActions>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ bgcolor: '#f8fafc' }}>添加用户</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#ffffff' }}>
+          <Box sx={{ display: 'grid', gap: 3, mt: 1 }} component="form" onSubmit={handleCreateUser}>
+            <TextField
+              label="用户名"
+              value={newUsername}
+              onChange={(event) => setNewUsername(event.target.value)}
+              required
+              fullWidth
+            />
+            <TextField
+              label="密码"
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              required
+              fullWidth
+            />
+            <TextField
+              label="角色"
+              value={defaultNewUserRole}
+              disabled
+              fullWidth
+            />
+            {createError ? <Typography color="error">{createError}</Typography> : null}
+            <DialogActions sx={{ px: 0, pb: 0, pt: 2 }}>
+              <Button onClick={() => setAddOpen(false)}>取消</Button>
+              <Button type="submit" variant="contained" disabled={createLoading}>
+                {createLoading ? '创建中...' : '确认'}
+              </Button>
+            </DialogActions>
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
   )
 }

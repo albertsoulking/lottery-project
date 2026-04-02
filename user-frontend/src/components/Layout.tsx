@@ -15,6 +15,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
+import assets from "../assets";
 
 const navItems = [
   { path: "/", label: "首页" },
@@ -69,29 +70,30 @@ export function Layout() {
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <CssBaseline />
       <AppBar position="static" color="primary" enableColorOnDark>
-        <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { md: "none" } }}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component={RouterLink} to="/" sx={{ color: "inherit", textDecoration: "none", flexGrow: 1 }}>
-            至尊联盟
-          </Typography>
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
-            {navItems.map((item) => (
-              <Button key={item.path} component={RouterLink} to={item.path} color="inherit">
-                {item.label}
-              </Button>
-            ))}
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1, minWidth: 0 }}>
+            <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 1, display: { md: 'none' } }}>
+              <MenuIcon />
+            </IconButton>
+            <Box component={'img'} src={assets.LOGO} alt="Logo" sx={{ height: 60 }} />
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, flexWrap: 'wrap' }}>
+              {navItems.map((item) => (
+                <Button key={item.path} size="small" component={RouterLink} to={item.path} color="inherit" sx={{fontSize: 18}}>
+                  {item.label}
+                </Button>
+              ))}
+            </Box>
           </Box>
+
           {username ? (
-            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1 }}>
-              <Typography>{`欢迎, ${username}`}</Typography>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, ml: 2 }}>
+              <Typography noWrap>{`欢迎, ${username}`}</Typography>
               <Button variant="outlined" color="inherit" startIcon={<LogoutIcon />} onClick={handleLogout}>
                 退出
               </Button>
             </Box>
           ) : (
-            <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, ml: 2 }}>
               <Button component={RouterLink} to="/register" color="inherit">
                 注册
               </Button>
@@ -107,7 +109,7 @@ export function Layout() {
         {drawer}
       </Drawer>
 
-      <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
+      <Box component="main" sx={{ flex: 1, px: { xs: 2, md: 4 } }}>
         <Outlet />
       </Box>
     </Box>
